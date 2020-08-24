@@ -63,15 +63,17 @@ public class MainLogic {
         RegistrationRsp result =  new RegistrationRsp();
         if (siteReq != null && !siteReq.getSite().isEmpty()) {
             String name = siteReq.getSite();
-            if (!this.sites.findByName(name).isPresent()) {
-                String login = nameUUIDFromBytes(name.getBytes()).toString();
-                String password = randomUUID().toString();
-                this.sites.save(new Site()
-                        .setLogin(login)
-                        .setName(name)
-                        .setPassword(this.passwordEncoder().encode(password))
-                );
-                result.setLogin(login).setPassword(password).setRegistration(true);
+            synchronized (this.sites) {
+                if (!this.sites.findByName(name).isPresent()) {
+                    String login = nameUUIDFromBytes(name.getBytes()).toString();
+                    String password = randomUUID().toString();
+                    this.sites.save(new Site()
+                            .setLogin(login)
+                            .setName(name)
+                            .setPassword(this.passwordEncoder().encode(password))
+                    );
+                    result.setLogin(login).setPassword(password).setRegistration(true);
+                }
             }
         }
         return result.toJSON();
@@ -83,7 +85,7 @@ public class MainLogic {
      * @param urlConvertRequest the url convert request
      * @return the short cut
      */
-    public String getShortCut(final UrlConvertReq urlConvertRequest) {
+    public synchronized String getShortCut(final UrlConvertReq urlConvertRequest) {
         final String[] result = new String[1];
         this.linkRepository.findByOriginUrl(urlConvertRequest.getUrl())
                 .ifPresentOrElse(
@@ -146,7 +148,7 @@ public class MainLogic {
      * @param key the short cut key
      * @return redirect
      */
-    public String redirect(final String key) {
+    public synchronized String redirect(final String key) {
         final String[] result = {"redirect:/urlNotExist"};
         this.linkRepository.findByShortCut(key)
                 .ifPresent(link -> {
