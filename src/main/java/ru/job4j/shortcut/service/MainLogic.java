@@ -148,12 +148,12 @@ public class MainLogic {
      * @param key the short cut key
      * @return redirect
      */
-    public synchronized String redirect(final String key) {
+    public String redirect(final String key) {
         final String[] result = {"redirect:/urlNotExist"};
         this.linkRepository.findByShortCut(key)
                 .ifPresent(link -> {
                     result[0] = format("redirect:%s", link.getOriginUrl());
-                    this.linkRepository.save(link.visit());
+                    this.linkRepository.updateRequestCountByShortCut(key);
                 });
         return result[0];
     }
@@ -175,7 +175,7 @@ public class MainLogic {
         if (!links.isEmpty()) {
             StringJoiner joiner = new StringJoiner(",", "{", "}");
             links.forEach(link ->
-                joiner.add(format("{\"url\":\"%s\", \"total\":%s}", link.getOriginUrl(), link.getRequestsCount()))
+                    joiner.add(format("{\"url\":\"%s\", \"total\":%s}", link.getOriginUrl(), link.getRequestsCount()))
             );
             result = joiner.toString();
         }

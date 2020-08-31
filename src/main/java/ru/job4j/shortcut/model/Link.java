@@ -8,6 +8,7 @@ import javax.persistence.*;
  * @author Victor Egorov (qrioflat@gmail.com).
  * @version 0.1
  * @since 21.08.2020
+ * @noinspection unused
  */
 @Entity
 @Table(name = "links")
@@ -18,7 +19,7 @@ public class Link {
     private String originUrl;
     private String shortCut;
     private int requestsCount;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "site_id")
     private Site site;
 
